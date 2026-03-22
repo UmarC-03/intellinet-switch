@@ -19,6 +19,11 @@ Prototype system that monitors network performance and automatically switches to
 - Created latency simulation script
 - Implemented decision logic for switching
 
+**Day 2:**
+- Integated User Configuration
+- Implemented State-Aware Logic
+- Formatted codebase for readablity
+
   ---
 
 ## Usage Notice
