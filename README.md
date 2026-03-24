@@ -21,25 +21,6 @@ The system operates on a multi-layered evaluation logic:
 3. **Weighting Profiles:** Users select a logic profile (Gaming, Streaming, or General) that shifts the engine's priorities. Gaming profiles favor low latency, while Streaming profiles favor raw throughput.
 4. **Hysteresis Buffer:** To prevent "switch-spam," the engine requires the alternative network to be at least 12% better than the current one before triggering a transition.
 
----
-
-## Dev Log
-
-**Day 1:**
-- Established core latency simulation and basic switching logic.
-
-**Day 2:**
-- Implemented State-Aware Logic to prevent redundant toggling.
-- Introduced User Configuration for interval and threshold management.
-
-**Day 3:**
-- Expanded monitoring to include Packet Loss and Mbps.
-- Refined decision logic to handle inverse metrics (where higher Mbps is better, but higher Latency is worse).
-
-**Day 4:**
-- Developed the Autonomous Intelligence Engine, removing manual metric selection.
-- Integrated Mathematical Normalization.
-- Implemented Profile-Based Weighting optimization.
 
 ## Future Roadmap
 
