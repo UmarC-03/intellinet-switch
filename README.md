@@ -29,7 +29,7 @@ The system operates on a multi-layered evaluation logic:
 - **Visual Interface:** Develop a high-contrast terminal dashboard for real-time score tracking.
   
 ### Development Log
-For a detailed day-by-day record of progress, see [DEV_LOG.md](./DEV_LOG.md)
+For a detailed day-by-day record of progress, see  the [Development Log](./Dev_Log.md)
 
 ## Usage Notice
 
