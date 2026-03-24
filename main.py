@@ -1,21 +1,81 @@
 import random
 import time
+import math
 
 # --- Configuration ---
 print("====== INTELLINET SWITCH ======")
 current_network = str(input("Enter current network (WiFi/Hotspot): ")).strip().lower()
-intervel = int(input("Enter interval (seconds): "))
-threshold = float(input("Enter metric threshold: "))
-print("\n--- SELECT PRIMARY METRIC ---")
-print("1. Latency (ms)")
-print("2. Packet Loss (%)")
-print("3. Throughput (Mbps)")
-choice = input("Select (1/2/3): ")
+intervel = float(input("Enter interval (seconds): "))
+print("\n--- SELECT PROFILE ---")
+print("1. Gaming")
+print("2. Streaming")
+print("3. General")
 
-metric_map = {"1": "Latency", "2": "Packet Loss", "3": "Mbps"}
-selected_metric = metric_map.get(choice, "Latency")
+profile_choice = input("Select (1/2/3): ")
+
+profile_map = {
+    "1": "gaming",
+    "2": "streaming",
+    "3": "general"
+}
+
+selected_profile = profile_map.get(profile_choice, "general")
 
 print("================================")
+
+# --- Normalization Parameters ---
+LATENCY_REF = 50
+THROUGHPUT_REF = 25
+PACKET_LOSS_K = 15
+
+HYSTERESIS_MARGIN = 0.12
+
+WEIGHTS = {
+
+    "gaming": {
+        "latency": 0.45,
+        "packet_loss": 0.40,
+        "throughput": 0.15
+    },
+
+    "streaming": {
+        "latency": 0.20,
+        "packet_loss": 0.30,
+        "throughput": 0.50
+    },
+
+    "general": {
+        "latency": 0.35,
+        "packet_loss": 0.35,
+        "throughput": 0.30
+    }
+}
+
+# --- Logic Engine ---
+def normalize_latency(latency):
+    ratio = latency / LATENCY_REF
+    return 1 / (1 + ratio**2)
+
+
+def normalize_packet_loss(packet_loss):
+    P = packet_loss / 100
+    return math.exp(-PACKET_LOSS_K * P)
+
+
+def normalize_throughput(throughput):
+    return 1 - math.exp(-throughput / THROUGHPUT_REF)
+
+def compute_score(latency, packet_loss, throughput, profile):
+    w = WEIGHTS[profile]
+    q_latency = normalize_latency(latency)
+    q_loss = normalize_packet_loss(packet_loss)
+    q_throughput = normalize_throughput(throughput)
+    score = (
+        w["latency"] * q_latency
+        + w["packet_loss"] * q_loss
+        + w["throughput"] * q_throughput
+    )
+    return score
 
 # --- Monitoring & Swapping ---
 # Note: The metric values are simulated for the current prototype.
@@ -39,43 +99,56 @@ def network_wifi():
     global current_network
     current_network = "wifi"
 
+last_score_wifi = 0
+last_score_hotspot = 0
+
 # --- Main Loop ---
 while True:
-    wifi_latency, wifi_packet_loss, wifi_throughput = get_wifi_metrics()
-    hotspot_latency, hotspot_packet_loss, hotspot_throughput = get_hotspot_metrics()
-    if selected_metric == "Latency":
-        w_val, h_val = wifi_latency, hotspot_latency
-        unit = "ms"
-    elif selected_metric == "Packet Loss":
-        w_val, h_val = wifi_packet_loss, hotspot_packet_loss
-        unit = "%"
-    else: # Mbps
-        w_val, h_val = wifi_throughput, hotspot_throughput
-        unit = "Mbps"
 
-    print(f"WiFi {selected_metric}: {round(w_val, 1)}{unit} | Hotspot {selected_metric}: {round(h_val, 1)}{unit} | Active: {current_network}")
+    wifi_latency, wifi_packet_loss, wifi_throughput = get_wifi_metrics()
+
+    hotspot_latency, hotspot_packet_loss, hotspot_throughput = get_hotspot_metrics()
+
+    wifi_score = compute_score(
+        wifi_latency,
+        wifi_packet_loss,
+        wifi_throughput,
+        selected_profile
+    )
+
+
+    hotspot_score = compute_score(
+        hotspot_latency,
+        hotspot_packet_loss,
+        hotspot_throughput,
+        selected_profile
+    )
+
+
+    print(
+        f"WiFi Score: {round(wifi_score,3)} | "
+        f"Hotspot Score: {round(hotspot_score,3)} | "
+        f"Active: {current_network}"
+    )
+
+    score_difference = abs(wifi_score - hotspot_score)
 
     if current_network == "wifi":
+        if (
+            hotspot_score > wifi_score
+            and score_difference > HYSTERESIS_MARGIN
+        ):
+            network_hotspot()
+            print("Switching to Hotspot")
 
-        if selected_metric == "Mbps":
-            if h_val - w_val > threshold:
-                network_hotspot()
-                print(f"Switching to Hotspot due to better {selected_metric}.")
-        else:
-            if w_val - h_val > threshold:
-                network_hotspot()
-                print(f"Switching to Hotspot due to poor {selected_metric}.")
 
     elif current_network == "hotspot":
-        
-        if selected_metric == "Mbps":
-            if w_val - h_val > threshold:
-                network_wifi()
-                print(f"Switching to WiFi due to better {selected_metric}.")
-        else:
-            if h_val - w_val > threshold:
-                network_wifi()
-                print(f"Switching to WiFi due to poor {selected_metric}.")
+        if (
+            wifi_score > hotspot_score
+            and score_difference > HYSTERESIS_MARGIN
+        ):
+            network_wifi()
+            print("Switching to WiFi)")
 
     print("-" * 30)
     time.sleep(intervel)
