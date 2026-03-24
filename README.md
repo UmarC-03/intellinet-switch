@@ -24,6 +24,13 @@ Prototype system that monitors network performance and automatically switches to
 - Implemented State-Aware Logic
 - Formatted codebase for readablity
 
+**Day 3:**
+- Added support for Packet Loss (%) and Throughput (Mbps)
+- Edited startup menu allowing the user to choose the primary switching metric.
+- Refined the decision engine to handle both "Lower is Better" (Latency/ Packet Loss) and "Higher is Better" (Mbps) scenarios.
+
+  
+
   ---
 
 ## Usage Notice
