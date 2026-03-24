@@ -27,6 +27,9 @@ The system operates on a multi-layered evaluation logic:
 - **Interface Integration:** Replace simulated values with live system subprocess pings and speed tests.
 - **Hardware Triggering:** Map software decisions to physical GPIO pins for Raspberry Pi relay switching.
 - **Visual Interface:** Develop a high-contrast terminal dashboard for real-time score tracking.
+  
+### Development Log
+For a detailed day-by-day record of progress, see [DEV_LOG.md](./DEV_LOG.md)
 
 ## Usage Notice
 
