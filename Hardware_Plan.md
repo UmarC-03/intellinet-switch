@@ -47,7 +47,9 @@ The "Brain" of the IntelliNet Switch.
 
 ### 3.6 Thermal Management: Active Cooler (Fan + Heatsink)
 * **Role:** Prevents CPU throttling during intensive real-time metric calculations.
+* **Note:** If the cooler kit does not contain a case or mount one will be needed.
 * **Quantity:** 1
+
 
 ---
 
