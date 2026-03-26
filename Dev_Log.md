@@ -20,3 +20,8 @@ This is a daily project log. Click here to see a [project overview](./README.md)
 **Day 5:**
 - Researched and planned hardware implementation.
 - Created the hardware plan and list, [see here](./Hardware_Plan.md).
+
+**Day 6:**
+- Modularized the core logic in preperation for real-world metrics.
+- Implemented a graceful shutdown.
+
