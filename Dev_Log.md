@@ -16,3 +16,7 @@ This is a daily project log. Click here to see a [project overview](./README.md)
 - Developed the Autonomous Intelligence Engine, removing manual metric selection.
 - Integrated Mathematical Normalization (Sigmoid and Exponential Decay functions).
 - Implemented Profile-Based Weighting for Gaming and Streaming optimizations.
+
+**Day 5:**
+- Researched and planned hardware implementation.
+- Created the hardware plan and list, [see here](./Hardware_Plan.md).
