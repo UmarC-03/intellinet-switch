@@ -2,153 +2,66 @@ import random
 import time
 import math
 
-# --- Configuration ---
+# --- 1. CONFIGURATION & PROFILES ---
 print("====== INTELLINET SWITCH ======")
-current_network = str(input("Enter current network (WiFi/Hotspot): ")).strip().lower()
-intervel = float(input("Enter interval (seconds): "))
-print("\n--- SELECT PROFILE ---")
-print("1. Gaming")
-print("2. Streaming")
-print("3. General")
+current_network = str(input("Enter current network (WiFi/ethernet): ")).strip().lower()
+interval = float(input("Enter check interval (seconds): "))
 
-profile_choice = input("Select (1/2/3): ")
-
-profile_map = {
-    "1": "gaming",
-    "2": "streaming",
-    "3": "general"
+PROFILES = {
+    "1": ("Gaming", {"lat": 0.45, "loss": 0.40, "speed": 0.15}),
+    "2": ("Streaming", {"lat": 0.20, "loss": 0.30, "speed": 0.50}),
+    "3": ("General", {"lat": 0.35, "loss": 0.35, "speed": 0.30})
 }
 
-selected_profile = profile_map.get(profile_choice, "general")
+print("\n--- SELECT PROFILE ---")
+for key, (name, _) in PROFILES.items():
+    print(f"{key}. {name}")
 
-print("================================")
+choice = input("Select (1/2/3): ")
+profile_name, weights = PROFILES.get(choice, PROFILES["3"])
+print(f"ACTIVE PROFILE: {profile_name}\n" + "="*31)
 
-# --- Normalization Parameters ---
-LATENCY_REF = 50
-THROUGHPUT_REF = 25
-PACKET_LOSS_K = 15
-
+# --- 2. NORMALIZATION PARAMETERS ---
+LAT_REF, SPEED_REF, LOSS_K = 50, 25, 15
 HYSTERESIS_MARGIN = 0.12
 
-WEIGHTS = {
+# --- 3. THE MATH ENGINE ---
+def get_score(lat, loss, speed):
+    q_lat = 1 / (1 + (lat / LAT_REF)**2)
+    q_loss = math.exp(-LOSS_K * (loss / 100))
+    q_speed = 1 - math.exp(-speed / SPEED_REF)
+    
+    return (weights["lat"] * q_lat) + (weights["loss"] * q_loss) + (weights["speed"] * q_speed)
 
-    "gaming": {
-        "latency": 0.45,
-        "packet_loss": 0.40,
-        "throughput": 0.15
-    },
+def simulate_metrics(net_type):
+    if net_type == "wifi":
+        return random.randint(20, 100), random.uniform(0, 5), random.uniform(10, 100)
+    return random.randint(50, 120), random.uniform(0, 5), random.uniform(10, 100)
 
-    "streaming": {
-        "latency": 0.20,
-        "packet_loss": 0.30,
-        "throughput": 0.50
-    },
-
-    "general": {
-        "latency": 0.35,
-        "packet_loss": 0.35,
-        "throughput": 0.30
-    }
-}
-
-# --- Logic Engine ---
-def normalize_latency(latency):
-    ratio = latency / LATENCY_REF
-    return 1 / (1 + ratio**2)
-
-
-def normalize_packet_loss(packet_loss):
-    P = packet_loss / 100
-    return math.exp(-PACKET_LOSS_K * P)
-
-
-def normalize_throughput(throughput):
-    return 1 - math.exp(-throughput / THROUGHPUT_REF)
-
-def compute_score(latency, packet_loss, throughput, profile):
-    w = WEIGHTS[profile]
-    q_latency = normalize_latency(latency)
-    q_loss = normalize_packet_loss(packet_loss)
-    q_throughput = normalize_throughput(throughput)
-    score = (
-        w["latency"] * q_latency
-        + w["packet_loss"] * q_loss
-        + w["throughput"] * q_throughput
-    )
-    return score
-
-# --- Monitoring & Swapping ---
-# Note: The metric values are simulated for the current prototype.
-def get_wifi_metrics():
-    latency = random.randint(20, 100)
-    packet_loss = random.uniform(0, 5)
-    throughput = random.uniform(10, 100)
-    return latency, packet_loss, throughput
-
-def get_hotspot_metrics():
-    latency = random.randint(50, 120)
-    packet_loss = random.uniform(0, 5)
-    throughput = random.uniform(10, 100)
-    return latency, packet_loss, throughput
-
-def network_hotspot():
+def switch_to(target):
     global current_network
-    current_network = "hotspot"
+    current_network = target
+    print(f"ACTION: Switching to {target.upper()}")
 
-def network_wifi():
-    global current_network
-    current_network = "wifi"
+# --- 4. MAIN AUTONOMOUS LOOP ---
+try:
+    print("Intellinet Engine Running. Press Ctrl+C to stop.\n" + "="*31)
+    while True:
+        w_lat, w_loss, w_speed = simulate_metrics("wifi")
+        h_lat, h_loss, h_speed = simulate_metrics("ethernet")
 
-last_score_wifi = 0
-last_score_hotspot = 0
+        w_score = get_score(w_lat, w_loss, w_speed)
+        h_score = get_score(h_lat, h_loss, h_speed)
+        diff = abs(w_score - h_score)
 
-# --- Main Loop ---
-while True:
+        print(f"WiFi: {w_score:.3f} | ethernet: {h_score:.3f} | Active: {current_network}")
 
-    wifi_latency, wifi_packet_loss, wifi_throughput = get_wifi_metrics()
+        if current_network == "wifi" and h_score > (w_score + HYSTERESIS_MARGIN):
+            switch_to("ethernet")
+        elif current_network == "ethernet" and w_score > (h_score + HYSTERESIS_MARGIN):
+            switch_to("wifi")
 
-    hotspot_latency, hotspot_packet_loss, hotspot_throughput = get_hotspot_metrics()
-
-    wifi_score = compute_score(
-        wifi_latency,
-        wifi_packet_loss,
-        wifi_throughput,
-        selected_profile
-    )
-
-
-    hotspot_score = compute_score(
-        hotspot_latency,
-        hotspot_packet_loss,
-        hotspot_throughput,
-        selected_profile
-    )
-
-
-    print(
-        f"WiFi Score: {round(wifi_score,3)} | "
-        f"Hotspot Score: {round(hotspot_score,3)} | "
-        f"Active: {current_network}"
-    )
-
-    score_difference = abs(wifi_score - hotspot_score)
-
-    if current_network == "wifi":
-        if (
-            hotspot_score > wifi_score
-            and score_difference > HYSTERESIS_MARGIN
-        ):
-            network_hotspot()
-            print("Switching to Hotspot")
-
-
-    elif current_network == "hotspot":
-        if (
-            wifi_score > hotspot_score
-            and score_difference > HYSTERESIS_MARGIN
-        ):
-            network_wifi()
-            print("Switching to WiFi)")
-
-    print("-" * 30)
-    time.sleep(intervel)
+        print("-" * 31)
+        time.sleep(interval)
+except KeyboardInterrupt:
+    print("\n[!] Intellinet Engine Stopped.")
