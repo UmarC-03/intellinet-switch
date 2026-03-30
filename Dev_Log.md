@@ -25,3 +25,13 @@ This is a daily project log. Click here to see a [project overview](./README.md)
 - Modularized the core logic in preperation for real-world metrics.
 - Implemented a graceful shutdown.
 
+**Day 7:**
+- Bridged the gap between simulated data and OS-level telemetry.
+- Identified a math-engine glitch where disconnected networks still reported a score
+
+**Day 8 & 9:**
+No progress was made due to an unforeseen family emergency. The project was temporarily placed on hiatus.
+
+**Day 10:** 
+- Project submitted to the HackClub Blueprint.
+- Architecture overview diagram was designed.
