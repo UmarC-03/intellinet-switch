@@ -20,6 +20,8 @@ The system operates on a multi-layered evaluation logic:
 2. **Exponential Decay:** The engine treats packet loss as a critical failure point. Using exponential functions, even a 1% increase in loss aggressively drops the network's health score.
 3. **Weighting Profiles:** Users select a logic profile (Gaming, Streaming, or General) that shifts the engine's priorities. Gaming profiles favor low latency, while Streaming profiles favor raw throughput.
 4. **Hysteresis Buffer:** To prevent "switch-spam," the engine requires the alternative network to be at least 12% better than the current one before triggering a transition.
+5. 
+<img width="1920" height="1080" alt="IntelliNet Switch" src="https://github.com/user-attachments/assets/dd7664b9-35c4-432b-8d6e-83c44e5f1f92" />
 
 
 ## Future Roadmap
